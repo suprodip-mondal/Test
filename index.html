@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Loaded Noto Sans with multiple weights (including 300 for thin/light text) -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  .paperbox {
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 12px 28px rgba(0,0,0,.1);
+    width: max-content;
+    margin: 20px auto;
+    overflow: hidden;
+  }
+  .receipt-box {
+    width: 72mm;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.18;
+    padding: 4mm 3mm;
+    background: #ffffff;
+    color: #000000;
+    box-sizing: border-box;
+    font-weight: 40; /* Change this to 300 if you want the whole receipt to look genuinely thinner! */
+  }
+  .receipt-box .continuous-line { border: none; border-top: 1px solid #949494; margin: 6px 0; }
+  .receipt-box .center { text-align: center; }
+  .receipt-box .right { text-align: right; }
+  .receipt-box hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+  .receipt-box table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .receipt-box td { font-size: 13px; vertical-align: top; overflow: hidden; padding: 2px 2px; border: none !important; }
+
+  /* Form styling for screen view */
+  .form-container {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f4f4f4;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+  }
+  .form-container label { display: block; margin-top: 10px; font-weight: bold; }
+  .form-container input, .form-container select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+  .form-container .row-inputs { display: flex; gap: 10px; }
+  .form-container .row-inputs div { flex: 1; }
+  .form-container button { margin-top: 15px; width: 100%; padding: 10px; background: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+  .form-container button:hover { background: #0056b3; }
+
+  @media print {
+    .form-container { display: none; }
+    body, html { margin: 0; padding: 0; background: #fff; }
+    .paperbox { box-shadow: none; margin: 0; position: absolute; left: 0; top: 0; width: 72mm; }
+    .paperbox * { visibility: visible !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Input Form -->
+  <div class="form-container">
+    <h3>Receipt Generator</h3>
+    <label>Bill No:</label>
+    <input type="text" id="inputBillNo" value="50991">
+    
+    <label>Customer Name:</label>
+    <input type="text" id="inputName" placeholder="Optional">
+
+
+
+    <label>Item Name:</label>
+    <select id="inputItem">
+      <option value="All Chicken Item H4 Students">All Chicken Item H4 Students</option>
+      <option value="Egg Bhurji">Egg Bhurji</option>
+      <option value="Egg Full Fry/egg Half Fry">Egg Full Fry/egg Half Fry</option>
+      <option value="All Paneer Item H4 Students">All Paneer Item H4 Students</option>
+    </select>
+
+    <div class="row-inputs">
+      <div>
+        <label>Quantity:</label>
+        <input type="number" id="inputQty" value="1" min="1" oninput="calculateTotal()">
+      </div>
+      <div>
+        <label>Price (₹):</label>
+        <input type="number" id="inputPrice" value="55.00" step="0.01" oninput="calculateTotal()">
+      </div>
+    </div>
+
+   <div class="row-inputs">
+      <div>
+        <label>Date (DD/MM/YY):</label>
+        <input type="text" id="inputDate">
+      </div>
+      <div>
+        <label>Time (HH:MM):</label>
+        <input type="text" id="inputTime">
+      </div>
+    </div>
+
+    <label>Payment Mode:</label>
+    <select id="inputPayment">
+      <option value="Paid via Other [UPI]">UPI</option>
+      <option value="Paid via Cash">Cash</option>
+    </select>
+
+    <button onclick="generateAndPrint()">Print Receipt</button>
+  </div>
+
+  <!-- Receipt Template -->
+  <div class="paperbox">
+    <div class="receipt-box" id="printArea">
+      <div class="center" style="font-size:15px;font-weight: 400;">
+        <b>Dietico Healthfood (Hostel</b><br>
+        <b>No.17)</b><br>
+      </div>
+      <div class="center">
+        Hostel No.17, IIT Bombay Powai,<br>
+        Mumbai: 400076
+      </div>
+      <hr class="continuous-line">
+      <div>Name: <span id="displayName"></span></div>
+      <hr class="continuous-line" style="margin-bottom: 12px;">
+
+      <table>
+        <tr>
+          <td class="left" style="width: 50%; ">Date: <span id="displayDate"></span></td>
+          <td class="left" style="width: 50%; font-size: 14px; font-weight: 400;"><b>Take Away</b></td>
+        </tr>
+        <tr>
+          <td class="left" id="displayTime"></td>
+        </tr>
+        <tr>
+          <td class="left" style="width: 50%;">Cashier: biller</td>
+          <td class="left" style="width: 50%;">Bill No. : <span id="displayBillNo">50990</span></td>
+        </tr>
+      </table>
+
+      <hr class="continuous-line">
+
+      <table>
+        <tr>
+          <td style="text-align: left; width: 50%;">Item</td>
+          <td class="right" style="width: 11%;">Qty.</td>
+          <td class="right" style="width: 22%;">Price</td>
+          <td class="right" style="width: 22%;">Amount</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="padding: 0; line-height: 0;">
+            <hr class="continuous-line" style="margin: 3px 0 10px 0;">
+          </td>
+        </tr>
+        <tr>
+          <td id="displayItem" style="text-align: left;">All Chicken Item H4 Students</td>
+          <td id="displayQty" class="center">1</td>
+          <td id="displayPrice" class="right">55.00</td>
+          <td id="displayAmount" class="right">55.00</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="padding: 0; line-height: 0;">
+            <hr class="continuous-line" style="margin: 3px 0;">
+          </td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <td id="displayTotalQty" class="right" style="width: 40%;">Total Qty: 1</td>
+          <td class="right" style="width: 40%;">Sub Total</td>
+          <td id="displaySubTotal" class="right" style="width: 20%;">55.00</td>
+        </tr>
+      </table>
+
+      <hr class="continuous-line">
+
+      <table>
+        <tr>
+          <td class="right" style="width: 72%; font-size: 15px;font-weight: 400;"><b>Grand Total</b></td>
+          <td id="displayGrandTotal" class="right" style="width: 27%; font-size: 15px;font-weight: 400;"><b>₹ 55.00</b></td>
+        </tr>
+      </table>
+
+      <div id="displayPayment" style="font-size: 10px;">Paid via Other [UPI]</div>
+      <hr class="continuous-line">
+      <div class="center">
+        FSSAI Lic No. 11523998000083<br>
+        Thank You Visit Again !!!
+      </div>
+    </div>
+  </div>
+
+<script>
+  function calculateTotal() {
+    let qty = parseFloat(document.getElementById('inputQty').value) || 0;
+    let price = parseFloat(document.getElementById('inputPrice').value) || 0;
+    let amount = (qty * price).toFixed(2);
+
+    document.getElementById('displayQty').innerText = qty;
+    document.getElementById('displayPrice').innerText = price.toFixed(2);
+    document.getElementById('displayAmount').innerText = amount;
+    document.getElementById('displayTotalQty').innerText = "Total Qty: " + qty;
+    document.getElementById('displaySubTotal').innerText = amount;
+    document.getElementById('displayGrandTotal').innerHTML = '<b>₹ ' + amount + '</b>';
+  }
+
+function updateDateTime() {
+    const now = new Date();
+    
+    // Default values
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const defaultDate = `${day}/${month}/${year}`;
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const defaultTime = `${hours}:${minutes}`;
+
+    // If form inputs are empty on load, fill them with current date/time
+    if (!document.getElementById('inputDate').value) {
+      document.getElementById('inputDate').value = defaultDate;
+    }
+    if (!document.getElementById('inputTime').value) {
+      document.getElementById('inputTime').value = defaultTime;
+    }
+
+    // Push whatever is in the inputs (default or custom) to the receipt display
+    document.getElementById('displayDate').innerText = document.getElementById('inputDate').value;
+    document.getElementById('displayTime').innerText = document.getElementById('inputTime').value;
+  }
+
+  window.onload = function() {
+    updateDateTime();
+    calculateTotal();
+  };
+
+  function generateAndPrint() {
+    updateDateTime();
+    calculateTotal();
+
+    document.getElementById('displayName').innerText = document.getElementById('inputName').value;
+    document.getElementById('displayBillNo').innerText = document.getElementById('inputBillNo').value;
+    document.getElementById('displayItem').innerText = document.getElementById('inputItem').value;
+    document.getElementById('displayPayment').innerText = document.getElementById('inputPayment').value;
+
+    window.print();
+  }
+</script>
+
+</body>
+</html>
