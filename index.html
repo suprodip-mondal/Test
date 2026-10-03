@@ -1,21 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<!-- Loaded Noto Sans with multiple weights (including 300 for thin/light text) -->
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thermal Receipt Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Three.js Library for 3D Sphere Animation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-  body{
-    background: #2b2b2b;
-    margin: 0;
-    padding: 0;
+  :root {
+    --accent-green: #0a635b;
+    --accent-gold: #c29b38;
   }
+
+  body {
+    background-color: #0f1115;
+    color: #f3f4f6;
+    margin: 0;
+    padding: 20px;
+    font-family: 'Noto Sans', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Three.js Canvas Background Layer */
+  #sphere-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Main Side-by-Side Layout */
+  .main-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    max-width: 950px;
+    margin: 40px auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Form styling */
+  .form-container {
+    width: 380px;
+    padding: 20px;
+    background: rgba(31, 41, 55, 0.85);
+    backdrop-filter: blur(12px);
+    color: #f3f4f6;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .form-container h3 {
+    margin-top: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 1px;
+  }
+  .form-container label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; }
+  .form-container input, .form-container select { 
+    width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; 
+    background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 6px;
+  }
+  .form-container .row-inputs { display: flex; gap: 10px; }
+  .form-container .row-inputs div { flex: 1; }
+  .form-container button { 
+    margin-top: 20px; width: 100%; padding: 12px; background: var(--accent-green); color: white; 
+    border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold;
+    transition: background 0.2s;
+  }
+  .form-container button:hover { background: #0d7c72; }
+
+  /* Paper Receipt Preview Styling */
   .paperbox {
     background: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 12px 28px rgba(0,0,0,.1);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
     width: max-content;
-    margin: 20px auto;
     overflow: hidden;
+    border-radius: 4px;
+    position: relative;
+    z-index: 2;
   }
+
   .receipt-box {
     width: 72mm;
     font-family: 'Noto Sans', sans-serif;
@@ -25,34 +97,26 @@
     background: #ffffff;
     color: #000000;
     box-sizing: border-box;
-    font-weight: 40; /* Change this to 300 if you want the whole receipt to look genuinely thinner! */
+    font-weight: 300;
   }
-  .receipt-box .continuous-line { border: none; border-top: 1px solid #949494; margin: 6px 0; }
+
+  /* Solid line style */
+  .receipt-box .continuous-line { 
+    border: none; 
+    border-top: 1px solid #949494; 
+    margin: 6px 0; 
+  }
+  
   .receipt-box .center { text-align: center; }
   .receipt-box .right { text-align: right; }
   .receipt-box hr { border: none; border-top: 1px dashed #000; margin: 5px 0; }
   .receipt-box table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .receipt-box td { font-size: 13px; vertical-align: top; overflow: hidden; padding: 2px 2px; border: none !important; }
 
-  /* Form styling for screen view */
-  .form-container {
-    max-width: 400px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #bef7e7;
-    border-radius: 8px;
-    font-family: Arial, sans-serif;
-  }
-  .form-container label { display: block; margin-top: 10px; font-weight: bold; }
-  .form-container input, .form-container select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-  .form-container .row-inputs { display: flex; gap: 10px; }
-  .form-container .row-inputs div { flex: 1; }
-  .form-container button { margin-top: 15px; width: 100%; padding: 10px; background: #181e45; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-  .form-container button:hover { background: #0056b3; }
-
   @media print {
-    .form-container { display: none; }
-    body, html { margin: 0; padding: 0; background: #fff; }
+    .form-container, #sphere-canvas { display: none !important; }
+    body { background: #fff !important; margin: 0; padding: 0; }
+    .main-layout { display: block; margin: 0; }
     .paperbox { box-shadow: none; margin: 0; position: absolute; left: 0; top: 0; width: 72mm; }
     .paperbox * { visibility: visible !important; }
   }
@@ -60,139 +124,212 @@
 </head>
 <body>
 
-  <!-- Input Form -->
-  <div class="form-container">
-    <h3>Receipt Generator</h3>
-    <label>Bill No:</label>
-    <input type="text" id="inputBillNo" value="50991">
-    
-    <label>Customer Name:</label>
-    <input type="text" id="inputName" placeholder="Optional">
+  <!-- Three.js 3D Wireframe Sphere Background Canvas -->
+  <canvas id="sphere-canvas"></canvas>
 
+  <div class="main-layout">
+    <!-- Input Form (Left) -->
+    <div class="form-container">
+      <h3>Receipt Generator</h3>
+      <label>Bill No:</label>
+      <input type="text" id="inputBillNo" value="50991">
+      
+      <label>Customer Name:</label>
+      <input type="text" id="inputName" placeholder="Optional">
 
+      <label>Item Name:</label>
+      <input type="text" id="inputItem" value="All Chicken Item H4 Students">
 
-    <label>Item Name:</label>
-    <select id="inputItem">
-      <option value="All Chicken Item H4 Students">All Chicken Item H4 Students</option>
-      <option value="Egg Bhurji">Egg Bhurji</option>
-      <option value="Egg Full Fry/egg Half Fry">Egg Full Fry/egg Half Fry</option>
-      <option value="All Paneer Item H4 Students">All Paneer Item H4 Students</option>
-    </select>
-
-    <div class="row-inputs">
-      <div>
-        <label>Quantity:</label>
-        <input type="number" id="inputQty" value="1" min="1" oninput="calculateTotal()">
+      <div class="row-inputs">
+        <div>
+          <label>Quantity:</label>
+          <input type="number" id="inputQty" value="1" min="1" oninput="calculateTotal()">
+        </div>
+        <div>
+          <label>Price (₹):</label>
+          <input type="number" id="inputPrice" value="55.00" step="0.01" oninput="calculateTotal()">
+        </div>
       </div>
-      <div>
-        <label>Price (₹):</label>
-        <input type="number" id="inputPrice" value="55.00" step="0.01" oninput="calculateTotal()">
+
+      <div class="row-inputs">
+        <div>
+          <label>Date (DD/MM/YY):</label>
+          <input type="text" id="inputDate">
+        </div>
+        <div>
+          <label>Time (HH:MM):</label>
+          <input type="text" id="inputTime">
+        </div>
       </div>
+
+      <label>Payment Mode:</label>
+      <select id="inputPayment">
+        <option value="Paid via Other [UPI]">UPI</option>
+        <option value="Paid via Cash">Cash</option>
+      </select>
+
+      <button onclick="generateAndPrint()">Print Receipt</button>
     </div>
 
-   <div class="row-inputs">
-      <div>
-        <label>Date (DD/MM/YY):</label>
-        <input type="text" id="inputDate">
-      </div>
-      <div>
-        <label>Time (HH:MM):</label>
-        <input type="text" id="inputTime">
-      </div>
-    </div>
+    <!-- Receipt Template (Right) -->
+    <div class="paperbox">
+      <div class="receipt-box" id="printArea">
+        <div class="center" style="font-size:15px;font-weight: 400;">
+          <b>Dietico Healthfood (Hostel</b><br>
+          <b>No.17)</b><br>
+        </div>
+        <div class="center">
+          Hostel No.17, IIT Bombay Powai,<br>
+          Mumbai: 400076
+        </div>
+        <hr class="continuous-line">
+        <div>Name: <span id="displayName"></span></div>
+        <hr class="continuous-line" style="margin-bottom: 12px;">
 
-    <label>Payment Mode:</label>
-    <select id="inputPayment">
-      <option value="Paid via Other [UPI]">UPI</option>
-      <option value="Paid via Cash">Cash</option>
-    </select>
+        <table>
+          <tr>
+            <td class="left" style="width: 50%; ">Date: <span id="displayDate"></span></td>
+            <td class="left" style="width: 50%; font-size: 14px; font-weight: 400;"><b>Take Away</b></td>
+          </tr>
+          <tr>
+            <td class="left" id="displayTime"></td>
+          </tr>
+          <tr>
+            <td class="left" style="width: 50%;">Cashier: biller</td>
+            <td class="left" style="width: 50%;">Bill No. : <span id="displayBillNo">50990</span></td>
+          </tr>
+        </table>
 
-    <button onclick="generateAndPrint()">Print Receipt</button>
-  </div>
+        <hr class="continuous-line">
 
-  <!-- Receipt Template -->
-  <div class="paperbox">
-    <div class="receipt-box" id="printArea">
-      <div class="center" style="font-size:15px;font-weight: 400;">
-        <b>Dietico Healthfood (Hostel</b><br>
-        <b>No.17)</b><br>
-      </div>
-      <div class="center">
-        Hostel No.17, IIT Bombay Powai,<br>
-        Mumbai: 400076
-      </div>
-      <hr class="continuous-line">
-      <div>Name: <span id="displayName"></span></div>
-      <hr class="continuous-line" style="margin-bottom: 12px;">
+        <table>
+          <tr>
+            <td style="text-align: left; width: 50%;">Item</td>
+            <td class="right" style="width: 11%;">Qty.</td>
+            <td class="right" style="width: 22%;">Price</td>
+            <td class="right" style="width: 22%;">Amount</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="padding: 0; line-height: 0;">
+              <hr class="continuous-line" style="margin: 3px 0 10px 0;">
+            </td>
+          </tr>
+          <tr>
+            <td id="displayItem" style="text-align: left;">All Chicken Item H4 Students</td>
+            <td id="displayQty" class="center">1</td>
+            <td id="displayPrice" class="right">55.00</td>
+            <td id="displayAmount" class="right">55.00</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="padding: 0; line-height: 0;">
+              <hr class="continuous-line" style="margin: 3px 0;">
+            </td>
+          </tr>
+        </table>
 
-      <table>
-        <tr>
-          <td class="left" style="width: 50%; ">Date: <span id="displayDate"></span></td>
-          <td class="left" style="width: 50%; font-size: 14px; font-weight: 400;"><b>Take Away</b></td>
-        </tr>
-        <tr>
-          <td class="left" id="displayTime"></td>
-        </tr>
-        <tr>
-          <td class="left" style="width: 50%;">Cashier: biller</td>
-          <td class="left" style="width: 50%;">Bill No. : <span id="displayBillNo">50990</span></td>
-        </tr>
-      </table>
+        <table>
+          <tr>
+            <td id="displayTotalQty" class="right" style="width: 40%;">Total Qty: 1</td>
+            <td class="right" style="width: 40%;">Sub Total</td>
+            <td id="displaySubTotal" class="right" style="width: 20%;">55.00</td>
+          </tr>
+        </table>
 
-      <hr class="continuous-line">
+        <hr class="continuous-line">
 
-      <table>
-        <tr>
-          <td style="text-align: left; width: 50%;">Item</td>
-          <td class="right" style="width: 11%;">Qty.</td>
-          <td class="right" style="width: 22%;">Price</td>
-          <td class="right" style="width: 22%;">Amount</td>
-        </tr>
-        <tr>
-          <td colspan="4" style="padding: 0; line-height: 0;">
-            <hr class="continuous-line" style="margin: 3px 0 10px 0;">
-          </td>
-        </tr>
-        <tr>
-          <td id="displayItem" style="text-align: left;">All Chicken Item H4 Students</td>
-          <td id="displayQty" class="center">1</td>
-          <td id="displayPrice" class="right">55.00</td>
-          <td id="displayAmount" class="right">55.00</td>
-        </tr>
-        <tr>
-          <td colspan="4" style="padding: 0; line-height: 0;">
-            <hr class="continuous-line" style="margin: 3px 0;">
-          </td>
-        </tr>
-      </table>
+        <table>
+          <tr>
+            <td class="right" style="width: 72%; font-size: 15px;font-weight: 400;"><b>Grand Total</b></td>
+            <td id="displayGrandTotal" class="right" style="width: 27%; font-size: 15px;font-weight: 400;"><b>₹ 55.00</b></td>
+          </tr>
+        </table>
 
-      <table>
-        <tr>
-          <td id="displayTotalQty" class="right" style="width: 40%;">Total Qty: 1</td>
-          <td class="right" style="width: 40%;">Sub Total</td>
-          <td id="displaySubTotal" class="right" style="width: 20%;">55.00</td>
-        </tr>
-      </table>
-
-      <hr class="continuous-line">
-
-      <table>
-        <tr>
-          <td class="right" style="width: 72%; font-size: 15px;font-weight: 400;"><b>Grand Total</b></td>
-          <td id="displayGrandTotal" class="right" style="width: 27%; font-size: 15px;font-weight: 400;"><b>₹ 55.00</b></td>
-        </tr>
-      </table>
-
-      <div id="displayPayment" style="font-size: 10px;">Paid via Other [UPI]</div>
-      <hr class="continuous-line">
-      <div class="center">
-        FSSAI Lic No. 11523998000083<br>
-        Thank You Visit Again !!!
+        <div id="displayPayment" style="font-size: 10px;">Paid via Other [UPI]</div>
+        <hr class="continuous-line">
+        <div class="center">
+          FSSAI Lic No. 11523998000083<br>
+          Thank You Visit Again !!!
+        </div>
       </div>
     </div>
   </div>
 
 <script>
+  // Three.js Background Animation Setup
+  const canvas = document.getElementById('sphere-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 0);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const sphereGroup = new THREE.Group();
+  scene.add(sphereGroup);
+
+  // Outer Wireframe Sphere (Deep Green)
+  const sphereGeo = new THREE.SphereGeometry(24, 36, 36);
+  const wireframeGeo = new THREE.WireframeGeometry(sphereGeo);
+  const lineMaterial = new THREE.LineBasicMaterial({
+      color: 0x0a635b,
+      transparent: true,
+      opacity: 0.35
+  });
+  const sphereLines = new THREE.LineSegments(wireframeGeo, lineMaterial);
+  sphereGroup.add(sphereLines);
+
+  // Inner Concentric Geodesic (Warm Gold)
+  const innerGeo = new THREE.IcosahedronGeometry(18, 2);
+  const innerWireframe = new THREE.WireframeGeometry(innerGeo);
+  const innerMaterial = new THREE.LineBasicMaterial({
+      color: 0xc29b38,
+      transparent: true,
+      opacity: 0.25
+  });
+  const innerSphereLines = new THREE.LineSegments(innerWireframe, innerMaterial);
+  sphereGroup.add(innerSphereLines);
+
+  // Floating Particles
+  const particlesCount = 180;
+  const positions = new Float32Array(particlesCount * 3);
+  for (let i = 0; i < particlesCount; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 22;
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+  }
+  const particlesGeo = new THREE.BufferGeometry();
+  particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particlesMat = new THREE.PointsMaterial({
+      color: 0x0a635b,
+      size: 0.25,
+      transparent: true,
+      opacity: 0.5
+  });
+  const particles = new THREE.Points(particlesGeo, particlesMat);
+  sphereGroup.add(particles);
+
+  window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // Animation Loop
+  function animate() {
+      requestAnimationFrame(animate);
+      sphereGroup.rotation.y = Date.now() * 0.00015;
+      sphereGroup.rotation.x = Math.sin(Date.now() * 0.0003) * 0.1;
+      renderer.render(scene, camera);
+  }
+  animate();
+
+  // Receipt Form Logic
   function calculateTotal() {
     let qty = parseFloat(document.getElementById('inputQty').value) || 0;
     let price = parseFloat(document.getElementById('inputPrice').value) || 0;
@@ -206,10 +343,9 @@
     document.getElementById('displayGrandTotal').innerHTML = '<b>₹ ' + amount + '</b>';
   }
 
-function updateDateTime() {
+  function updateDateTime() {
     const now = new Date();
     
-    // Default values
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = String(now.getFullYear()).slice(-2);
@@ -219,7 +355,6 @@ function updateDateTime() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const defaultTime = `${hours}:${minutes}`;
 
-    // If form inputs are empty on load, fill them with current date/time
     if (!document.getElementById('inputDate').value) {
       document.getElementById('inputDate').value = defaultDate;
     }
@@ -227,7 +362,6 @@ function updateDateTime() {
       document.getElementById('inputTime').value = defaultTime;
     }
 
-    // Push whatever is in the inputs (default or custom) to the receipt display
     document.getElementById('displayDate').innerText = document.getElementById('inputDate').value;
     document.getElementById('displayTime').innerText = document.getElementById('inputTime').value;
   }
