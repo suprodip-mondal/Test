@@ -10,6 +10,35 @@
 <!-- html2canvas Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
+
+  @font-face {
+  font-family: 'StreetMaster';
+  src: url('Street Master.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  }
+
+  @font-face {
+  font-family: 'BigPartyC2-Blue';
+  src: url('BigPartyC2-Blue.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  }
+
+  @font-face {
+  font-family: 'Rooster';
+  src: url('ROOSTER PERSONAL USE.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  }
+
+  @font-face {
+  font-family: 'Talatala-Regular';
+  src: url('Talatala-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  }  
+
   :root {
     --accent-green: #0a635b;
     --accent-gold: #c29b38;
@@ -51,28 +80,42 @@
 
   /* Form styling */
   .form-container {
+    font-family: 'StreetMaster';
     width: 380px;
     padding: 20px;
-    background: rgba(31, 41, 55, 0.85);
+    background: rgba(167, 170, 117, 0.85);
     backdrop-filter: blur(12px);
-    color: #f3f4f6;
+    color: #000000;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     border: 1px solid rgba(255,255,255,0.08);
   }
+
   .form-container h3 {
-    margin-top: 0;
-    font-family: 'Space Grotesk', sans-serif;
-    letter-spacing: 1px;
+  font-family: 'BigPartyC2-Blue', sans-serif;
+  font-size: 45px;
+  letter-spacing: 2px;
+  color: #ffffff; /* Matches your accent gold theme */
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgb(177, 0, 0);
+  margin-top: 0;
   }
-  .form-container label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; }
+
+
+
+  .form-container label { display: block; margin-top: 10px; font-size: 25px; }
+
   .form-container input, .form-container select { 
+    font-family: 'Talatala-Regular';
     width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; 
-    background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 6px;
+    background: #ffffff; color: #513131; border: 1px solid #002558; border-radius: 6px;
   }
   .form-container .row-inputs { display: flex; gap: 10px; }
+
   .form-container .row-inputs div { flex: 1; }
+
   .form-container button { 
+    font-family: 'Rooster';
     margin-top: 20px; width: 100%; padding: 12px; background: var(--accent-green); color: white; 
     border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold;
     transition: background 0.2s;
@@ -154,18 +197,18 @@
           <input type="number" id="inputQty" value="1" min="1" oninput="calculateTotal()">
         </div>
         <div>
-          <label>Price (₹):</label>
+          <label>Price:</label>
           <input type="number" id="inputPrice" value="55.00" step="0.01" oninput="calculateTotal()">
         </div>
       </div>
 
       <div class="row-inputs">
         <div>
-          <label>Date (DD/MM/YY):</label>
+          <label>Date :</label>
           <input type="text" id="inputDate">
         </div>
         <div>
-          <label>Time (HH:MM):</label>
+          <label>Time :</label>
           <input type="text" id="inputTime">
         </div>
       </div>
@@ -176,7 +219,7 @@
         <option value="Paid via Cash">Cash</option>
       </select>
 
-      <button onclick="generateAndPrint()">Print Receipt</button>
+      <button onclick="generateAndPrint()";>Print Receipt</button>
     </div>
 
     <!-- Receipt Template (Right) -->
